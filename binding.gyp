@@ -14,7 +14,6 @@
         '<!@(node -p "require(\'node-addon-api\').include")'
       ],
       'defines' : [
-        'NAPI_EXPERIMENTAL',
         'NAPI_VERSION=<(napi_build_version)'
       ],
       'conditions' : [
@@ -24,7 +23,8 @@
           ],
           'cflags' : [
             '-g'
-          ]
+          ],
+          'defines': [ 'NAPI_EXPERIMENTAL' ]
         }],
         [ 'OS == "mac"', {
           'conditions': [
@@ -66,7 +66,7 @@
           'libraries' : [
             '-lodbccp32.lib'
           ],
-          'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS', 'NAPI_EXPERIMENTAL', 'UNICODE' ]
+          'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS', 'UNICODE' ]
         }],
         [ 'OS=="aix"', {
           'variables': {

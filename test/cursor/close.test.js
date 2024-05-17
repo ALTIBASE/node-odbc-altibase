@@ -20,7 +20,11 @@ describe('.close([callback])...', () => {
       const connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
       const queries = global.dbmsConfig.generateCreateOrReplaceQueries(`${process.env.DB_SCHEMA}.${TABLE_NAME}`, '(COL1 INT NOT NULL, COL2 CHAR(3), COL3 VARCHAR(16))');
       for(queryString of queries) {
-        await connection.query(queryString);
+        try {
+          await connection.query(queryString);
+        } catch (ex) {
+          continue;
+        }
       };
       await connection.query(`DELETE FROM ${process.env.DB_SCHEMA}.${TABLE_NAME}`);
       result = await connection.query(`INSERT INTO ${process.env.DB_SCHEMA}.${TABLE_NAME} VALUES(1, 'ABC', 'DEF')`);
