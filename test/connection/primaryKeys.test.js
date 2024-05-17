@@ -7,8 +7,8 @@ describe('.primaryKeys(catalog, schema, table, callback)...', () => {
     let connection;
     try {
       connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
-      const query1 = `CREATE OR REPLACE TABLE ${process.env.DB_SCHEMA}.PKTEST (ID INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID))`;
-      const query2 = `CREATE OR REPLACE TABLE ${process.env.DB_SCHEMA}.MULTIPKTEST (ID INTEGER, NUM INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID, NUM))`;
+      const query1 = `CREATE TABLE ${process.env.DB_SCHEMA}.PKTEST (ID INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID))`;
+      const query2 = `CREATE TABLE ${process.env.DB_SCHEMA}.MULTIPKTEST (ID INTEGER, NUM INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID, NUM))`;
       await connection.query(query1);
       await connection.query(query2);
     } catch (error) {

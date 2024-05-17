@@ -7,8 +7,8 @@ describe('.foreignKeys(catalog, schema, table, fkCatalog, fkSchema, fkTable, cal
     let connection;
     try {
       connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
-      const query1 = `CREATE OR REPLACE TABLE ${process.env.DB_SCHEMA}.PKTABLE (ID INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID))`;
-      const query2 = `CREATE OR REPLACE TABLE ${process.env.DB_SCHEMA}.FKTABLE (PKID INTEGER, NAME VARCHAR(24), FOREIGN KEY(PKID) REFERENCES PKTABLE(ID))`;
+      const query1 = `CREATE TABLE ${process.env.DB_SCHEMA}.PKTABLE (ID INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID))`;
+      const query2 = `CREATE TABLE ${process.env.DB_SCHEMA}.FKTABLE (PKID INTEGER, NAME VARCHAR(24), FOREIGN KEY(PKID) REFERENCES PKTABLE(ID))`;
       await connection.query(query1);
       await connection.query(query2);
     } catch (error) {
@@ -24,8 +24,8 @@ describe('.foreignKeys(catalog, schema, table, fkCatalog, fkSchema, fkTable, cal
     let connection;
     try {
       connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
-      const query1 = `DROP TABLE ${process.env.DB_SCHEMA}.PKTABLE`;
-      const query2 = `DROP TABLE ${process.env.DB_SCHEMA}.FKTABLE`;
+      const query1 = `DROP TABLE ${process.env.DB_SCHEMA}.FKTABLE`;
+      const query2 = `DROP TABLE ${process.env.DB_SCHEMA}.PKTABLE`;
       await connection.query(query1);
       await connection.query(query2);
     } catch (error) {
@@ -45,7 +45,6 @@ describe('.foreignKeys(catalog, schema, table, fkCatalog, fkSchema, fkTable, cal
           assert.strictEqual(error1, null);
           assert.strictEqual(results.length, 1);
           assert.deepStrictEqual(results.columns, global.dbmsConfig.sqlForeignKeysColumns);
-
           const result = results[0];
           // not testing for TABLE_CAT, dependent on the system
           assert.strictEqual(result.PKTABLE_SCHEM, `${process.env.DB_SCHEMA}`);

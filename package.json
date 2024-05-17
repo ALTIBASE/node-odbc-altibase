@@ -1,29 +1,21 @@
 {
-  "name": "odbc",
-  "description": "unixodbc bindings for node",
-  "version": "2.4.8",
-  "homepage": "http://github.com/markdirish/node-odbc/",
+  "name": "node-odbc-altibase",
+  "description": "Official altibase unixodbc bindings for node",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ALTIBASE/node-odbc-altibase",
   "main": "lib/odbc.js",
   "types": "lib/odbc.d.ts",
   "repository": {
     "type": "git",
-    "url": "git://github.com/markdirish/node-odbc.git"
+    "url": "https://github.com/ALTIBASE/node-odbc-altibase.git"
   },
   "bugs": {
-    "url": "https://github.com/markdirish/node-odbc/issues"
+    "url": "https://github.com/ALTIBASE/node-odbc-altibase/issues"
   },
   "contributors": [
     {
-      "name": "Mark Irish",
-      "email": "mirish@ibm.com"
-    },
-    {
-      "name": "Dan VerWeire",
-      "email": "dverweire@gmail.com"
-    },
-    {
-      "name": "Lee Smith",
-      "email": "notwink@gmail.com"
+      "name": "YounJung Park",
+      "email": "geoffrey.park@altibase.com"
     }
   ],
   "license": "MIT",
@@ -54,7 +46,8 @@
   "binary": {
     "module_name": "odbc",
     "module_path": "./lib/bindings/napi-v{napi_build_version}",
-    "host": "https://github.com/markdirish/node-odbc/releases/download/v{version}",
+    "host": "https://github.com/ALTIBASE/node-odbc-altibase/releases/download/",
+    "remote_path" : "{version}",
     "package_name": "{name}-v{version}-{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "napi_versions": [
       3,

@@ -1402,7 +1402,7 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
       #define SQLPROCEDURECOLUMNS_DATA_TYPE_INDEX       5
       #define SQLPROCEDURECOLUMNS_COLUMN_SIZE_INDEX     7
       #define SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX  9
-      #define SQLPROCEDURECOLUMNS_NULLABLE_INDEX       11
+      #define SQLPROCEDURECOLUMNS_NULLABLE_INDEX       11 
 
       // get stored column parameter data from the result set
 
@@ -1414,6 +1414,8 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
         data->parameters[i]->ParameterType = data->storedRows[i][SQLPROCEDURECOLUMNS_DATA_TYPE_INDEX].smallint_data; // DataType -> ParameterType
         data->parameters[i]->ColumnSize = data->storedRows[i][SQLPROCEDURECOLUMNS_COLUMN_SIZE_INDEX].integer_data; // ParameterSize -> ColumnSize
         data->parameters[i]->Nullable = data->storedRows[i][SQLPROCEDURECOLUMNS_NULLABLE_INDEX].smallint_data;
+        // decimml digits are missed from resultset
+        data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
 
         // For each parameter, need to manipulate the data buffer and C type
         // depending on what the InputOutputType is:
@@ -1851,15 +1853,16 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
       data->deleteColumns(); // delete data in columns for next result set
 
       // 13 non-template characters in { CALL %s (%s) }\0
-      size_t sqlStringSize = 1024 + parameterStringSize + sizeof("{ CALL  () }");
+      // upper case in escape syntax is not possible in Altibase
+      size_t sqlStringSize = 1024 + parameterStringSize + sizeof("{ call  () }");
       data->sql = new SQLTCHAR[sqlStringSize];
 #ifndef UNICODE
-      sprintf((char *)data->sql, "{ CALL %s (%s) }", combinedProcedureName, parameterString);
+      sprintf((char *)data->sql, "{ call %s (%s) }", combinedProcedureName, parameterString);
 #else
       // Note: On Windows, %s and %S change their behavior depending on whether
       // it's passed to a printf function or a wprintf function. Since we're passing
       // narrow strings to a wide function in the case of parameters, we need to use %S.
-      swprintf(data->sql, sqlStringSize, L"{ CALL %s (%S) }", combinedProcedureName, parameterString);
+      swprintf(data->sql, sqlStringSize, L"{ call %s (%S) }", combinedProcedureName, parameterString);
 #endif
 
       delete[] combinedProcedureName;

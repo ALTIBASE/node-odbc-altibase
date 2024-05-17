@@ -33,17 +33,11 @@ if (dbms) {
                   connection = await odbc.connect(process.env.CONNECTION_STRING);
                   // await connection.beginTransaction();
                   const procedureQuery = `CREATE OR REPLACE PROCEDURE ${process.env.DB_SCHEMA}.${procedureName} (
-                    IN IN_${dataType} ${dataType} ${size ? `${size} ` : ' '}${options ? `${options}` : ''},
-                    INOUT INOUT_${dataType} ${dataType} ${size ? `${size} ` : ' '}${options ? `${options}` : ''},
-                    OUT OUT_${dataType} ${dataType} ${size ? `${size} ` : ' '}${options ? `${options}` : ''}
+                    IN_${dataType} IN ${dataType} ${size ? `${size} ` : ' '}${options ? `${options}` : ''},
+                    INOUT_${dataType} IN OUT ${dataType} ${size ? `${size} ` : ' '}${options ? `${options}` : ''},
+                    OUT_${dataType} OUT ${dataType} ${size ? `${size} ` : ' '}${options ? `${options}` : ''}
                           )
-                      LANGUAGE SQL
-                      MODIFIES SQL DATA
-                      PROGRAM TYPE SUB
-                      CONCURRENT ACCESS RESOLUTION DEFAULT
-                      DYNAMIC RESULT SETS 0
-                      OLD SAVEPOINT LEVEL
-                      COMMIT ON RETURN NO
+                    AS      
                     BEGIN
                     SET OUT_${dataType} = INOUT_${dataType};
                     SET INOUT_${dataType} = IN_${dataType};
@@ -84,10 +78,17 @@ describe('.callProcedure(procedureName, parameters, [callback])...', () => {
       const array = [undefined];
       odbc.connect(`${process.env.CONNECTION_STRING}`, (error1, connection) => {
         assert.deepEqual(error1, null);
+        const procedureQuery = `CREATE OR REPLACE PROCEDURE TESTPROC(a1 OUT INTEGER)
+                                AS
+                                BEGIN
+                                  SELECT 1 INTO a1 FROM dual;
+                                END`;
+        connection.query(procedureQuery);
         connection.callProcedure(null, `${process.env.DB_SCHEMA}`, `${process.env.DB_STOREDPROCEDURE}`, array, (error2, result2) => {
           assert.deepEqual(error2, null);
           assert.notDeepEqual(result2, null);
           done();
+          connection.query("DROP PROCEDURE TESTPROC");
         });
       });
     });
@@ -95,9 +96,17 @@ describe('.callProcedure(procedureName, parameters, [callback])...', () => {
       const array = [undefined, undefined];
       odbc.connect(`${process.env.CONNECTION_STRING}`, (error1, connection) => {
         assert.deepEqual(error1, null);
+        const procedureQuery = `CREATE OR REPLACE PROCEDURE TESTPROC2(a1 OUT INTEGER, a2 OUT INTEGER)
+                                AS
+                                BEGIN
+                                  SELECT 1 INTO a1 FROM dual;
+                                  SELECT 2 INTO a2 FROM dual;
+                                END`;
+        connection.query(procedureQuery);                        
         connection.callProcedure(null, `${process.env.DB_SCHEMA}`, `${process.env.DB_STOREDPROCEDURE2}`, array, (error2, result2) => {
           assert.deepEqual(error2, null);
           assert.notDeepEqual(result2, null);
+          connection.query("DROP PROCEDURE TESTPROC2");
           done();
         });
       });
