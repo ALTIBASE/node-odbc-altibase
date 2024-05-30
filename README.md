@@ -1,7 +1,7 @@
-# odbc
+# node-odbc-altibase
 
 
-An asynchronous interface for Node.js to unixODBC and its supported drivers.
+An asynchronous interface for Node.js to unixODBC and its supported drivers.(certified with Altibase)
 
 ---
 
@@ -34,9 +34,9 @@ This package is a native addon, built with C++ code using `node-addon-api`, a C+
 
 ## Installation
 
-Three main steps must be done before `node-odbc` can interact with your database:
+Three main steps must be done before `node-odbc-altibase` can interact with your database:
 
-* **Install unixODBC and unixODBC-devel:** Compilation of `node-odbc` on your system requires these packages to provide the correct headers.
+* **Install unixODBC and unixODBC-devel:** Compilation of `node-odbc-altibase` on your system requires these packages to provide the correct headers.
   * **Ubuntu/Debian**: `sudo apt-get install unixodbc unixodbc-dev`
   * **RedHat/CentOS**: `sudo yum install unixODBC unixODBC-devel`
   * **OSX**:
@@ -49,10 +49,10 @@ Three main steps must be done before `node-odbc` can interact with your database
 
 * **odbc.ini and odbcinst.ini**: These files define your DSNs (data source names) and ODBC drivers, respectively. They must be set up for ODBC functions to correctly interact with your database.
 
-When all these steps have been completed, install `node-odbc` into your Node.js project by using:
+When all these steps have been completed, install `node-odbc-altibase` into your Node.js project by using:
 
 ```bash
-npm install odbc
+npm install node-odbc-altibase
 ```
 ---
 
@@ -81,7 +81,8 @@ Instead, tracing should be enabled through your driver manager, and that informa
 
 ---
 
-## Important Changes in 2.0
+## Important Changes in node-odbc 2.0
+`node-odbc-altibase` has been forked from node-odbc and following is changes from node-odbc
 
 `node-odbc` has recently been upgraded from its initial release. The following list highlights the major improvements and potential code-breaking changes.
 
