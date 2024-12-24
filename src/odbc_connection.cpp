@@ -1180,7 +1180,6 @@ void ODBCConnection::ParametersToArray(Napi::Reference<Napi::Array> *napiParamet
             value = Napi::Number::New(env, *(SQLUINTEGER*)parameter->ParameterValuePtr);
             break;
           // Napi::BigInt
-#if NAPI_VERSION > 5
           case SQL_C_SBIGINT:
             if (parameter->isbigint ==  true) {
               value = Napi::BigInt::New(env, *(int64_t*)parameter->ParameterValuePtr);
@@ -1195,14 +1194,6 @@ void ODBCConnection::ParametersToArray(Napi::Reference<Napi::Array> *napiParamet
               value = Napi::Number::New(env, *(uint64_t*)parameter->ParameterValuePtr);
             }
             break;
-#else
-          case SQL_C_SBIGINT:
-            value = Napi::Number::New(env, *(int64_t*)parameter->ParameterValuePtr);
-            break;
-          case SQL_C_UBIGINT:
-            value = Napi::Number::New(env, *(uint64_t*)parameter->ParameterValuePtr);
-            break;
-#endif
           case SQL_C_SSHORT:
             value = Napi::Number::New(env, *(signed short*)parameter->ParameterValuePtr);
             break;
@@ -1402,7 +1393,7 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
       #define SQLPROCEDURECOLUMNS_DATA_TYPE_INDEX       5
       #define SQLPROCEDURECOLUMNS_COLUMN_SIZE_INDEX     7
       #define SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX  9
-      #define SQLPROCEDURECOLUMNS_NULLABLE_INDEX       11 
+      #define SQLPROCEDURECOLUMNS_NULLABLE_INDEX       11
 
       // get stored column parameter data from the result set
 
@@ -1414,7 +1405,7 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
         data->parameters[i]->ParameterType = data->storedRows[i][SQLPROCEDURECOLUMNS_DATA_TYPE_INDEX].smallint_data; // DataType -> ParameterType
         data->parameters[i]->ColumnSize = data->storedRows[i][SQLPROCEDURECOLUMNS_COLUMN_SIZE_INDEX].integer_data; // ParameterSize -> ColumnSize
         data->parameters[i]->Nullable = data->storedRows[i][SQLPROCEDURECOLUMNS_NULLABLE_INDEX].smallint_data;
-        // decimml digits are missed from resultset
+        // Decimal digits are missing for IN and INOUT parameters.
         data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
 
         // For each parameter, need to manipulate the data buffer and C type
@@ -1747,7 +1738,6 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
                 data->parameters[i]->ValueType = SQL_C_CHAR;
                 data->parameters[i]->ParameterValuePtr = new SQLCHAR[bufferSize];
                 data->parameters[i]->BufferLength = bufferSize;
-                data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
                 break;
 
               case SQL_DOUBLE:
@@ -1755,28 +1745,24 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
                 data->parameters[i]->ValueType = SQL_C_DOUBLE;
                 data->parameters[i]->ParameterValuePtr = new SQLDOUBLE();
                 data->parameters[i]->BufferLength = sizeof(SQLDOUBLE);
-                data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
                 break;
 
               case SQL_TINYINT:
                 data->parameters[i]->ValueType = SQL_C_UTINYINT;
                 data->parameters[i]->ParameterValuePtr = new SQLCHAR();
                 data->parameters[i]->BufferLength = sizeof(SQLCHAR);
-                data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
                 break;
 
               case SQL_SMALLINT:
                 data->parameters[i]->ValueType = SQL_C_SSHORT;
                 data->parameters[i]->ParameterValuePtr = new SQLSMALLINT();
                 data->parameters[i]->BufferLength = sizeof(SQLSMALLINT);
-                data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
                 break;
 
               case SQL_INTEGER:
                 data->parameters[i]->ValueType = SQL_C_SLONG;
                 data->parameters[i]->ParameterValuePtr = new SQLINTEGER();
                 data->parameters[i]->BufferLength = sizeof(SQLINTEGER);
-                data->parameters[i]->DecimalDigits = data->storedRows[i][SQLPROCEDURECOLUMNS_DECIMAL_DIGITS_INDEX].smallint_data;
                 break;
 
               case SQL_BIGINT:
@@ -1853,7 +1839,7 @@ class CallProcedureAsyncWorker : public ODBCAsyncWorker {
       data->deleteColumns(); // delete data in columns for next result set
 
       // 13 non-template characters in { CALL %s (%s) }\0
-      // upper case in escape syntax is not possible in Altibase
+      // Uppercase in escape syntax is not possible in Altibase.
       size_t sqlStringSize = 1024 + parameterStringSize + sizeof("{ call  () }");
       data->sql = new SQLTCHAR[sqlStringSize];
 #ifndef UNICODE
@@ -4207,11 +4193,7 @@ Napi::Array process_data_for_napi(Napi::Env env, StatementData *data, Napi::Arra
           case SQL_BIGINT:
             switch(columns[j]->bind_type) {
               case SQL_C_SBIGINT:
-#if NAPI_VERSION > 5
                 value = Napi::BigInt::New(env, (int64_t)storedRow[j].bigint_data);
-#else
-                value = Napi::Number::New(env, (int64_t)storedRow[j].bigint_data);
-#endif
                 break;
               default:
                 value = Napi::String::New(env, (char*)storedRow[j].char_data);

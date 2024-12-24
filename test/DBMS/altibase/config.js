@@ -3,8 +3,10 @@ const odbc = require('../../../lib/odbc');
 module.exports = {
   generateCreateOrReplaceQueries: function(tableName, fields) {
     const sqlQueries = [];
-    sqlQueries.push(`DROP TABLE ${tableName}`);
+    sqlQueries.push(`DROP TABLE IF EXISTS ${tableName}`);
     sqlQueries.push(`CREATE TABLE ${tableName} ${fields}`);
+    sqlQueries.push(`CREATE OR REPLACE PROCEDURE TESTPROC(a1 OUT INTEGER) AS BEGIN  SELECT 1 INTO a1 FROM dual; END;`); // DB_STOREDPROCEDURE
+    sqlQueries.push(`CREATE OR REPLACE PROCEDURE TESTPROC2(a1 OUT INTEGER, a2 OUT INTEGER) AS BEGIN  SELECT 1 INTO a1 FROM dual;  SELECT 2 INTO a2 FROM dual; END;`); // DB_STOREDPROCEDURE2
     return sqlQueries;
   },
   sqlColumnsColumns: [

@@ -4,8 +4,6 @@
 const odbc = require('../lib/odbc');
 
 const OBJECTS_EXISTS_STATE = -601;
-const OBJECTS_NOT_EXISTS_STATE = 200753;
-
 const DBMS_LIST = [
   'ibmi',
   'mariadb',
@@ -15,7 +13,7 @@ const DBMS_LIST = [
   'sybase',
   'altibase'
 ];
-global.dbms = 'altibase';
+global.dbms = undefined;
 
 before(async () => {
   if (process.env.DBMS)
@@ -50,20 +48,19 @@ before(async () => {
 describe('odbc', () => {
   before(async () => {
     let connection;
+    try {
       connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
       const queries = global.dbmsConfig.generateCreateOrReplaceQueries(`${process.env.DB_SCHEMA}.${process.env.DB_TABLE}`, '(ID INTEGER, NAME VARCHAR(24), AGE INTEGER)');
       for(queryString of queries) {
-        try {
-          await connection.query(queryString);
-        } catch (error) {
-          // ignore OBJECTS_EXISTS_STATE or OBJECTS_NOT_EXISTS_STATE error
-          if (error.odbcErrors[0].code !== OBJECTS_EXISTS_STATE &&
-              error.odbcErrors[0].code !== OBJECTS_NOT_EXISTS_STATE) {
-            throw (error);
-          } 
-        }
+        await connection.query(queryString);
       };
+    } catch (error) {
+      if (error.odbcErrors[0].code !== OBJECTS_EXISTS_STATE) {
+        throw (error);
+      }
+    } finally {
       await connection.close();
+    }
   });
 
   afterEach(async () => {
