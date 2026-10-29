@@ -7,20 +7,32 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 18.x
+          - 20.x
         os:
-          - windows-latest
+          - windows-2022
           - ubuntu-latest
-          - macos-latest
+        include:
+          # Build Linux binaries on glibc 2.28, the minimum required by Node.js 20/22/24
+          - os: ubuntu-latest
+            container: rockylinux:8
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     steps:
-    - uses: actions/checkout@v2
+    - name: Install dependencies
+      if: ${{ matrix.container }}
+      run: |
+        dnf install -y gcc-c++ make python3.11 unixODBC-devel git tar xz
+        echo "PYTHON=python3.11" >> "$GITHUB_ENV"
+    - uses: actions/checkout@v7
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Install dependencies
-      if: ${{ startsWith(matrix.os, 'macos') }}
-      run: brew install unixodbc
     - name: Build package
       run: npm ci --production --build-from-source
+  lint:
+    runs-on: ubuntu-26.04
+    steps:
+    - uses: actions/checkout@v7
+    - name: Check source formatting
+      run: clang-format-20 --Werror --dry-run src/*

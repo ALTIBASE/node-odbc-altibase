@@ -1,7 +1,7 @@
 {
   "name": "node-odbc-altibase",
   "description": "Official altibase unixodbc bindings for node",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/ALTIBASE/node-odbc-altibase",
   "main": "lib/odbc.js",
   "types": "lib/odbc.d.ts",
@@ -29,7 +29,7 @@
     "lib": "."
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "node-pre-gyp install --build-from-source",
@@ -37,7 +37,7 @@
     "test": "mocha --slow 5000 --timeout 30000"
   },
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.5",
+    "@mapbox/node-pre-gyp": "^2.0.3",
     "async": "^3.0.1",
     "node-addon-api": "^3.0.2"
   },
@@ -52,8 +52,7 @@
   "binary": {
     "module_name": "odbc",
     "module_path": "./lib/bindings/napi-v{napi_build_version}",
-    "host": "https://github.com/ALTIBASE/node-odbc-altibase/releases/download/",
-    "remote_path" : "{version}",
+    "host": "https://github.com/ALTIBASE/node-odbc-altibase/releases/download/v{version}",
     "package_name": "{name}-v{version}-{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "napi_versions": [
       8

@@ -3,6 +3,8 @@
 
 An asynchronous interface for Node.js to unixODBC and its supported drivers.(certified with Altibase)
 
+node-odbc-altibase is based on [node-odbc](https://github.com/IBM/node-odbc) 2.6.0.
+
 ---
 
 ## Requirements
@@ -29,9 +31,15 @@ This package is a native addon written in C++ using
 
 Currently supported versions include:
 
+* Node.js 24
 * Node.js 22
 * Node.js 20
-* Node.js 18
+
+Node.js 18 is supported only by node-odbc-altibase 1.0.1. If you need Node.js 18, install that version:
+
+```bash
+npm install node-odbc-altibase@1.0.1
+```
 
 ---
 
