@@ -1,69 +1,147 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [2.4.7] - 2023-01-26
-### Fixed
+## node-odbc-altibase
+
+node-odbc-altibase is the Altibase fork of [node-odbc](https://github.com/IBM/node-odbc).
+Each release below names the upstream node-odbc version it is based on. The upstream
+change history follows in the [node-odbc](#node-odbc) section.
+
+### [2.0.0] - Unreleased
+Based on upstream node-odbc 2.6.0.
+
+#### Changed
+- **Breaking:** Node.js 18 is no longer supported. The minimum Node.js version is now 20, and
+  Node.js 20, 22 and 24 are supported. Users who need Node.js 18 should stay on 1.0.1
+  (`npm install node-odbc-altibase@1.0.1`).
+- Updated the source to upstream node-odbc 2.6.0. See the upstream 2.5.0 and 2.6.0 entries
+  below for the changes this brings, including `connection.cancel()` and `statement.cancel()`.
+- Updated `@mapbox/node-pre-gyp` to 2.x to fix critical and high vulnerabilities in its
+  `tar`, `minimatch` and `brace-expansion` dependencies used during `npm install`.
+- Release tags now have a `v` prefix (`v2.0.0`). Earlier releases were tagged without it
+  (`1.0.0`, `1.0.1`).
+- Prebuilt binaries are published to GitHub Releases for Linux x64 (glibc 2.28 or later) and
+  Windows x64. Other platforms build from source during `npm install`.
+
+#### Fixed
+- Fixed a 1-byte heap overflow when `callProcedure` calls a procedure that has no parameters.
+- Fixed `Pool.query()` with a callback throwing an uncaught exception, which terminated the
+  process, when the pool failed to create a connection. The error is now passed to the callback.
+- Fixed `Pool` queries waiting forever after the pool failed to create a connection.
+
+### [1.0.1] - 2024-12-27
+Based on upstream node-odbc 2.4.8.
+
+#### Changed
+- Added support for Node.js 18, 20 and 22. The minimum Node.js version is 18.
+
+### [1.0.0] - 2024-05-30
+Based on upstream node-odbc 2.4.8.
+
+#### Added
+- Initial release of node-odbc-altibase, certified with Altibase.
+
+## node-odbc
+
+### [2.6.0] - 2026-09-23
+- ci: Build ppc64le Linux binaries for releases
+- ci: Update Node and action versions for PR builds
+- build(deps): bump tar from 7.5.13 to 7.5.19
+- build(deps-dev): bump js-yaml from 4.1.1 to 4.3.0
+- refactor: Remove dynodbc support
+- fix: bind SQL_TINYINT columns as SQL_C_SHORT to support signed values
+- feat: add connection.cancel() and statement.cancel() via SQLCancel
+- style: Reformat code with clang-format
+- build(deps-dev): bump js-yaml from 4.3.0 to 4.3.2
+- build(deps): bump serialize-javascript and mocha
+- build(deps): bump tar from 7.5.19 to 7.5.22
+- build(deps-dev): bump brace-expansion from 1.1.13 to 1.1.18
+- doc: update npm install steps
+- doc: Clean up README
+- doc: replace json for javascript lang specifier
+
+### [2.5.0] - 2026-04-01
+- Fix various typos and reference issues in Cursor.js
+- docs(README): typo (clsoing => closing).
+- docs(README): typo (fire of => fire off).
+- Update node-pre-gyp
+- Bump tar from 7.5.1 to 7.5.7
+- Bump tar from 7.5.7 to 7.5.9
+- ci: GitHub Actions Maintenance
+- fix: Update npm packages for security issues
+- Add connected and autocomplete types
+- Return after fail to connect in Pool, else causes unhanded error
+- Add SQL_TXN_* types to TypeScript definition
+- [TypeScript] Change API types from class to interface
+- fix: Make CONNECTION_CLOSED_ERROR a static property
+- chore: Clean up compiler warnings
+- ci: update contents permission ...
+- chore: Update Node.js release for IBM i buiatus ld
+- ci: Update Jenkins configuration
+
+### [2.4.7] - 2023-01-26
+#### Fixed
 - Fixed static cursor declaration causeing performance degredatio
 - Fixed a memory leak with certain long binary and character types
 
-## [2.4.6] - 2022-09-22
-### Fixed
+### [2.4.6] - 2022-09-22
+#### Fixed
 - Fixed TypeScript definition error preventing compilation
 
-## [2.4.5] - 2022-09-12
-### Added
+### [2.4.5] - 2022-09-12
+#### Added
 - `primaryKeys` instance function on `Connection` to call ODBC SQLPrimaryKeys function
 - `foreignKeys` instance function on `Connection` to call ODBC SQLForeignKeys function
 - Binaries added for all supported N-API versions for all GitHub Actions runners 
 
-### Fixed
+#### Fixed
 - Fixed VARCHAR(MAX) fields creating 0-sized buffers (MSSQL)
 - Fixed various TypeScript type definitions
 
-## [2.4.4] - 2022-04-26
-### Fixed
+### [2.4.4] - 2022-04-26
+#### Fixed
 - Fixed application crashing when `callProcedure` was given the wrong procedure name or number of parameters
 - Fixed TypeScript definition for Connection's `tables` function
 
-### Added
+#### Added
 - `binding.gyp` path for OS400 (IBM i)
 
-## [2.4.3] - 2022-03-31
-### Fixed
+### [2.4.3] - 2022-03-31
+#### Fixed
 - Updated dependencies for security fixes
 - Fixed generation of `callProcedure` sql string when `UNICODE` is defined
 
-## [2.4.2] - 2022-02-07
-### Added
+### [2.4.2] - 2022-02-07
+#### Added
 - `binding.gyp` build instructions for MacOS 
 - `Statement`'s `.execute` function can now return a `Cursor` when the correct queryOption is passed
 
-### Fixed
+#### Fixed
 - `Statement` and `Cursor` should now better handle freeing memory
 - `Connection`'s `.callProcedure` should now work on Windows with `UNICODE` defined
 - Fixed up TypeScript definitions
 
 
-## [2.4.1] - 2021-10-19
-### Added
+### [2.4.1] - 2021-10-19
+#### Added
 - Simple binding path allows driver's that don't implement block fetch and column-wise binding to still be able to fetch results
 - Allow pool.query() to use query options
 
-### Fixed
+#### Fixed
 - Update timeout definitions in README.md
 - Fixed multiple memory leaks
 - Fixed multiple segfaults
 
 
-## [2.4.0] - 2021-07-06
-### Added
+### [2.4.0] - 2021-07-06
+#### Added
 - NEW Cursor class that is returned when new `cursor` query option is set to `true`. Cursor allows users to fetch partial result sets through calling `fetch`
 - NEW `timeout` query property allows users to define the number of seconds to wait for execution before returning to the application
 - NEW `initialBufferSize` query property property allows users to define the size of a buffer for SQL_LONG data types before resizing
 - Tests for multiple DBMSs added
 - Support for FreeBSD build
 
-### Fixed
+#### Fixed
 - Connection generation in pools is now more efficient and doesn't block queries
 - Retrieving binary data 
 - Improved TypeScript definitions
@@ -72,108 +150,108 @@ All notable changes to this project will be documented in this file.
 - Fixed multiple uncaught errors
 - Dozens of minor fixes (see GitHub issues)
 
-### Changed
+#### Changed
 - SQL_LONG* fields now use SQLGetData ODBC function, greatly increasing performance
 - Connection options can now be passed through to pool connections
 - Debugging no longer done through `DEBUG` define, but through existing connection manager facilities
 - Updated dependencies
 
-## [2.3.6] - 2021-02-19
+### [2.3.6] - 2021-02-19
 - Emergency version to fix a push made to `npm` in error.
 
-## [2.3.5] - 2020-09-14
-### Fixed
+### [2.3.5] - 2020-09-14
+#### Fixed
 - Fixed multiple connections being created after `pool.query()` is called.
 
-## [2.3.4] - 2020-08-09
-### Fixed
+### [2.3.4] - 2020-08-09
+#### Fixed
 - Fixed bug when UNICODE is defined where statement in result object and column name properties wouldn't encode correctly
 - Update package-lock.json with vulnerability fixes
 
-## [2.3.3] - 2020-07-31
-### Fixed
+### [2.3.3] - 2020-07-31
+#### Fixed
 - Fixed bug when UNICODE is defined where error message, error state, and column names wouldn't encode correctly
 
-## [2.3.2] - 2020-07-28
-### Fixed
+### [2.3.2] - 2020-07-28
+#### Fixed
 - Fixed bug with REAL, DECIMAL, and NUMERIC fields ocassionaly returning incorrect results
 
-### Changed 
+#### Changed 
 - Windows binaries are now built with `UNICODE` defined by default (like in 1.x)
 
-### Added
+#### Added
 - `columns` array on result set now includes `columnSize`, `decimalDigits`, and `nullable` data from `SQLDescribeCol`
 
-## [2.3.1] - 2020-07-24
-### Fixed
+### [2.3.1] - 2020-07-24
+#### Fixed
 - Fixed bug with `callProcedure` on big-endian systems
 
-## [2.3.0] - 2020-05-21
-### Added
+### [2.3.0] - 2020-05-21
+#### Added
 - `node-pre-gyp` added to dependencies to download pre-built binaries
 - TypeScript definitions added for all functions and objects
 
-### Changed
+#### Changed
 - Refactored how column values are bound (now bound to correct C type)
 
-### Fixed
+#### Fixed
 - Promises no longer overwrite `odbcErrors` object on Errors
 - Parameters can now correctly be classified as integers or doubles
 - Multi-byte UTF-8 strings are now returned correctly
 
-## [2.2.2] - 2019-10-27
-### Fixed
+### [2.2.2] - 2019-10-27
+#### Fixed
 - Fixed SQL_DECIMAL, SQL_REAL, and SQL_NUMERIC losing precision
 
-## [2.2.1] - 2019-09-13
-### Fixed
+### [2.2.1] - 2019-09-13
+#### Fixed
 - pool.query() now closes the connections after query
 - Closing queries rapidly no longer causes segfaults
 
-## [2.2.0] - 2019-08-28
-### Added
+### [2.2.0] - 2019-08-28
+#### Added
 - Added `CHANGELONG.md`
 - Added Connection function `.setIsolationLevel(level, callback?)`
 
-### Changed
+#### Changed
 - Refactored how parameters are stored and returned
 
-### Fixed
+#### Fixed
 - SQL_NO_TOTAL should no longer return error on queries
 - connection.close() is now more stable
 
-## [2.1.3] - 2019-08-16
-### Changed
+### [2.1.3] - 2019-08-16
+#### Changed
 - Created much more rebust DEBUG messages
 
-## [2.1.2] - 2019-08-08
-### Added
+### [2.1.2] - 2019-08-08
+#### Added
 - Added support for `SQL_TINYINT`
 
-## [2.1.1] - 2019-08-05
-### Changed
+### [2.1.1] - 2019-08-05
+#### Changed
 - Upgraded `lodash` from version 4.17.11 to 4.17.15
 
-## [2.1.0] - 2019-08-02
-### Added
+### [2.1.0] - 2019-08-02
+#### Added
 - Added support for JavaScript BigInt binding to `SQL_BIGINT`
 
-## [2.0.0-4] - 2019-06-26
-### Changed
+### [2.0.0-4] - 2019-06-26
+#### Changed
 - Removed a debug message
 
-## [2.0.0-3] - 2019-06-13
-### Changed
+### [2.0.0-3] - 2019-06-13
+#### Changed
 - Fixed errors in `.callProcedure()`
 
-## [2.0.0-2] - 2019-06-11
-### Changed
+### [2.0.0-2] - 2019-06-11
+#### Changed
 - Fixed Windows compilation issues
 
-## [2.0.0-1] - 2019-06-10
-### Changed
+### [2.0.0-1] - 2019-06-10
+#### Changed
 - Fixed dependency issue with `async` package
 
-## [2.0.0] - 2019-06-10
-### Added
+### [2.0.0] - 2019-06-10
+#### Added
 - **COMPLETE REWRITE OF THE PACKAGE**
