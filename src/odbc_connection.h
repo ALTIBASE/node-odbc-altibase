@@ -20,6 +20,7 @@
 #define _SRC_ODBC_CONNECTION_H
 
 #include <napi.h>
+#include <set>
 
 class ODBCConnection : public Napi::ObjectWrap<ODBCConnection> {
 
@@ -48,7 +49,6 @@ class ODBCConnection : public Napi::ObjectWrap<ODBCConnection> {
   friend class CloseStatementAsyncWorker;
 
   public:
-
   static Napi::FunctionReference constructor;
   static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
@@ -56,20 +56,20 @@ class ODBCConnection : public Napi::ObjectWrap<ODBCConnection> {
   ~ODBCConnection();
 
   private:
-
   SQLRETURN Free();
 
   // Functions exposed to the Node.js environment
   Napi::Value Close(const Napi::CallbackInfo& info);
   Napi::Value CreateStatement(const Napi::CallbackInfo& info);
   Napi::Value Query(const Napi::CallbackInfo& info);
+  Napi::Value Cancel(const Napi::CallbackInfo& info);
   Napi::Value CallProcedure(const Napi::CallbackInfo& info);
 
   Napi::Value BeginTransaction(const Napi::CallbackInfo& info);
-  Napi::Value Commit(const Napi::CallbackInfo &info);
-  Napi::Value Rollback(const Napi::CallbackInfo &rollback);
+  Napi::Value Commit(const Napi::CallbackInfo& info);
+  Napi::Value Rollback(const Napi::CallbackInfo& rollback);
 
-  Napi::Value GetUsername(const Napi::CallbackInfo &info);
+  Napi::Value GetUsername(const Napi::CallbackInfo& info);
 
   Napi::Value Columns(const Napi::CallbackInfo& info);
   Napi::Value Tables(const Napi::CallbackInfo& info);
@@ -79,7 +79,7 @@ class ODBCConnection : public Napi::ObjectWrap<ODBCConnection> {
   Napi::Value GetConnAttr(const Napi::CallbackInfo& info);
   Napi::Value SetConnAttr(const Napi::CallbackInfo& info);
 
-  Napi::Value SetIsolationLevel(const Napi::CallbackInfo &info);
+  Napi::Value SetIsolationLevel(const Napi::CallbackInfo& info);
 
   // Property Getter/Setterss
   Napi::Value ConnectedGetter(const Napi::CallbackInfo& info);
@@ -89,7 +89,10 @@ class ODBCConnection : public Napi::ObjectWrap<ODBCConnection> {
 
   Napi::Value GetInfo(const Napi::Env env, const SQLUSMALLINT option);
 
-  void ParametersToArray(Napi::Reference<Napi::Array> *napiParameters, StatementData *data, unsigned char *overwriteParameters);
+  void ParametersToArray(
+    Napi::Reference<Napi::Array>* napiParameters, StatementData* data,
+    unsigned char* overwriteParameters
+  );
 
   bool isConnected;
   bool autocommit;
@@ -99,16 +102,31 @@ class ODBCConnection : public Napi::ObjectWrap<ODBCConnection> {
   SQLHENV hENV;
   SQLHDBC hDBC;
 
+  // Statement handles for in-flight operations, registered by the
+  // AsyncWorkers so that cancel() can call SQLCancel on them from the main
+  // thread while a worker thread is blocked on the ODBC call.
+  uv_mutex_t activeStatementsMutex;
+  std::set<SQLHSTMT> activeStatements;
+
+  void RegisterActiveStatement(SQLHSTMT hstmt);
+  void UnregisterActiveStatement(SQLHSTMT hstmt);
+
   ConnectionOptions connectionOptions;
 
-  GetInfoResults    getInfoResults;
+  GetInfoResults getInfoResults;
 };
 
-Napi::Array process_data_for_napi(Napi::Env env, StatementData *data, Napi::Array napiParameters);
-SQLRETURN bind_buffers(StatementData *data);
-SQLRETURN prepare_for_fetch(StatementData *data);
-SQLRETURN fetch_and_store(StatementData *data, bool set_position, bool *alloc_error);
-SQLRETURN fetch_all_and_store(StatementData *data, bool set_position, bool *alloc_error);
-SQLRETURN set_fetch_size(StatementData *data, SQLULEN fetch_size);
-Napi::Value parse_query_options(Napi::Env env, Napi::Value options_value, QueryOptions *query_options);
+Napi::Array process_data_for_napi(
+  Napi::Env env, StatementData* data, Napi::Array napiParameters
+);
+SQLRETURN bind_buffers(StatementData* data);
+SQLRETURN prepare_for_fetch(StatementData* data);
+SQLRETURN
+fetch_and_store(StatementData* data, bool set_position, bool* alloc_error);
+SQLRETURN
+fetch_all_and_store(StatementData* data, bool set_position, bool* alloc_error);
+SQLRETURN set_fetch_size(StatementData* data, SQLULEN fetch_size);
+Napi::Value parse_query_options(
+  Napi::Env env, Napi::Value options_value, QueryOptions* query_options
+);
 #endif
