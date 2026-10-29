@@ -10,8 +10,8 @@ describe('.foreignKeys(catalog, schema, table, fkCatalog, fkSchema, fkTable, cal
       let query1;
       let query2;
       if (global.dbms === 'altibase') {  // Altibase does not support the CREATE OR REPLACE TABLE statement.
-        query1 = `DROP TABLE IF EXISTS ${process.env.DB_SCHEMA}.FKTABLE`;
-        query2 = `DROP TABLE IF EXISTS ${process.env.DB_SCHEMA}.PKTABLE`;
+        query1 = global.dbmsConfig.dropTableIfExistsQuery(`${process.env.DB_SCHEMA}.FKTABLE`);
+        query2 = global.dbmsConfig.dropTableIfExistsQuery(`${process.env.DB_SCHEMA}.PKTABLE`);
         await connection.query(query1);
         await connection.query(query2);
         query1 = `CREATE TABLE ${process.env.DB_SCHEMA}.PKTABLE (ID INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID))`;
