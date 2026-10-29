@@ -1,6 +1,6 @@
 declare namespace odbc {
 
-  class ColumnDefinition {
+  interface ColumnDefinition {
     name: string;
     dataType: number;
     dataTypeName: string;
@@ -9,7 +9,7 @@ declare namespace odbc {
     nullable: boolean;
   }
 
-  class Result<T> extends Array<T> {
+  interface Result<T> extends Array<T> {
     count: number;
     columns: Array<ColumnDefinition>;
     statement: string;
@@ -17,17 +17,17 @@ declare namespace odbc {
     return: number;
   }
 
-  class OdbcError {
+  interface OdbcError {
     message: string;
     code: number;
     state: string;
   }
 
-  class NodeOdbcError extends Error {
+  interface NodeOdbcError extends Error {
     odbcErrors: Array<OdbcError>;
   }
 
-  class Statement {
+  interface Statement {
 
     ////////////////////////////////////////////////////////////////////////////
     //   Callbacks   ///////////////////////////////////////////////////////////
@@ -38,6 +38,8 @@ declare namespace odbc {
     bind(parameters: Array<number|string>, callback: (error: NodeOdbcError) => undefined): undefined;
 
     execute<T>(callback: (error: NodeOdbcError, result: Result<T>) => undefined): undefined;
+
+    cancel(callback: (error: NodeOdbcError) => undefined): undefined;
 
     close(callback: (error: NodeOdbcError) => undefined): undefined;
 
@@ -50,6 +52,8 @@ declare namespace odbc {
     bind(parameters: Array<number|string>): Promise<void>;
 
     execute<T>(): Promise<Result<T>>;
+
+    cancel(): Promise<void>;
 
     close(): Promise<void>;
   }
@@ -81,7 +85,7 @@ declare namespace odbc {
     cursor: boolean|string
   }
 
-  class Connection {
+  interface Connection {
 
     ////////////////////////////////////////////////////////////////////////////
     //   Callbacks   ///////////////////////////////////////////////////////////
@@ -111,6 +115,8 @@ declare namespace odbc {
     commit(callback: (error: NodeOdbcError) => undefined): undefined;
 
     rollback(callback: (error: NodeOdbcError) => undefined): undefined;
+
+    cancel(callback: (error: NodeOdbcError) => undefined): undefined;
 
     close(callback: (error: NodeOdbcError) => undefined): undefined;
 
@@ -142,10 +148,16 @@ declare namespace odbc {
 
     rollback(): Promise<void>;
 
+    cancel(): Promise<void>;
+
     close(): Promise<void>;
+
+    connected(): boolean;
+
+    autocommit(): boolean;
   }
 
-  class Pool {
+  interface Pool {
 
     ////////////////////////////////////////////////////////////////////////////
     //   Callbacks   ///////////////////////////////////////////////////////////
@@ -173,7 +185,7 @@ declare namespace odbc {
     close(): Promise<void>;
   }
 
-  class Cursor {
+  interface Cursor {
     noData: boolean
 
     ////////////////////////////////////////////////////////////////////////////
@@ -205,6 +217,11 @@ declare namespace odbc {
 
   function pool(connectionString: string): Promise<Pool>;
   function pool(connectionObject: PoolParameters): Promise<Pool>;
+
+  const SQL_TXN_READ_UNCOMMITTED: number;
+  const SQL_TXN_READ_COMMITTED: number;
+  const SQL_TXN_REPEATABLE_READ: number;
+  const SQL_TXN_SERIALIZABLE: number;
 }
 
 export = odbc;
