@@ -2,9 +2,25 @@
 const assert     = require('assert');
 const odbc       = require('../../');
 const { Cursor } = require('../../lib/Cursor');
+const { Pool }   = require('../../lib/Pool');
 
 describe('.query...', () => {
   describe('...with callbacks...', () => {
+    it('...should pass an error to the callback (not crash the process) when the pool fails to connect', (done) => {
+      // odbc.pool() would fail in init(), so build an uninitialized Pool that
+      // has to open a connection on the first query.
+      const pool = new Pool({
+        connectionString: 'DRIVER=NoSuchOdbcDriver',
+        initialSize: 0,
+        incrementSize: 1,
+      });
+      pool.query('SELECT 1 FROM DUAL', (error, result) => {
+        assert.notDeepEqual(error, null);
+        assert.deepEqual(error.message, '[odbc] Error connecting to the database');
+        assert.deepEqual(result, undefined);
+        done();
+      });
+    });
     it('...should correctly identify function signature with .query({string}, {function}).', (done) => {
       odbc.pool(`${process.env.CONNECTION_STRING}`, (error, pool) => {
         assert.deepEqual(error, null);
@@ -299,6 +315,21 @@ describe('.query...', () => {
     });
   });
   describe('...with promises...', () => {
+    it('...should reject (not crash the process) when the pool fails to connect', async () => {
+      // odbc.pool() would fail in init(), so build an uninitialized Pool that
+      // has to open a connection on the first query.
+      const pool = new Pool({
+        connectionString: 'DRIVER=NoSuchOdbcDriver',
+        initialSize: 0,
+        incrementSize: 1,
+      });
+      await assert.rejects(
+        pool.query('SELECT 1 FROM DUAL'),
+        {
+          message: '[odbc] Error connecting to the database',
+        },
+      );
+    });
     it('...should correctly identify function signature with .query({string}).', async () => {
       const pool = await odbc.pool({
         connectionString: `${process.env.CONNECTION_STRING}`,
