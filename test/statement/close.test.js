@@ -48,6 +48,7 @@ describe('.close([calback])...', () => {
     assert.throws(() => {
       statement.close({}, DUMMY_CALLBACK);
     }, EXECUTE_TYPE_ERROR);
+    await statement.close();
   });
   describe('...with callbacks...', () => {
     it('...should close a newly created statement.', (done) => {

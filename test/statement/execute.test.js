@@ -1,16 +1,20 @@
 /* eslint-env node, mocha */
 const assert = require('assert');
 const odbc   = require('../../lib/odbc');
+const { trackStatements } = require('./trackStatements');
 const { Cursor } = require('../../lib/Cursor');
 
 describe('.execute([calback])...', () => {
   let connection = null;
+  let closeStatements = null;
 
   beforeEach(async () => {
     connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
+    closeStatements = trackStatements(connection);
   });
 
   afterEach(async () => {
+    await closeStatements();
     await connection.close();
     connection = null;
   });
