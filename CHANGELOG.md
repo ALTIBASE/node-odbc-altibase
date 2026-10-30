@@ -16,6 +16,8 @@ Based on upstream node-odbc 2.6.0.
   (`npm install node-odbc-altibase@1.0.1`).
 - Updated the source to upstream node-odbc 2.6.0. See the upstream 2.5.0 and 2.6.0 entries
   below for the changes this brings, including `connection.cancel()` and `statement.cancel()`.
+- Documented `connection.cancel()` and `statement.cancel()` in the README, including how they
+  behave with the Altibase ODBC driver (checked with Altibase 7.3, 8.1 and 8.2).
 - Updated `@mapbox/node-pre-gyp` to 2.x to fix critical and high vulnerabilities in its
   `tar`, `minimatch` and `brace-expansion` dependencies used during `npm install`.
 - Release tags now have a `v` prefix (`v2.0.0`). Earlier releases were tagged without it
@@ -28,6 +30,8 @@ Based on upstream node-odbc 2.6.0.
 - Fixed `Pool.query()` with a callback throwing an uncaught exception, which terminated the
   process, when the pool failed to create a connection. The error is now passed to the callback.
 - Fixed `Pool` queries waiting forever after the pool failed to create a connection.
+- Fixed the error thrown or returned by `Statement` methods called after `statement.close()`
+  having an empty message. The message is now `Statement has already been closed!`.
 
 ### [1.0.1] - 2024-12-27
 Based on upstream node-odbc 2.4.8.

@@ -122,6 +122,7 @@ Instead, tracing should be enabled through your driver manager, and that informa
     * [.beginTransaction()](#begintransactioncallback)
     * [.commit()](#commitcallback)
     * [.rollback()](#rollbackcallback)
+    * [.cancel()](#cancelcallback)
     * [.close()](#closecallback)
 * [Pool](#Pool)
     * [constructor: odbc.pool()](#constructor-odbcpoolconnectionstring)
@@ -132,6 +133,7 @@ Instead, tracing should be enabled through your driver manager, and that informa
     * [.prepare()](#preparesql-callback)
     * [.bind()](#bindparameters-callback)
     * [.execute()](#executecallback)
+    * [.cancel()](#cancelcallback-1)
     * [.close()](#closecallback-2)
 * [Cursor](#Cursor)
     * [.fetch()](#fetchcallback)
@@ -649,6 +651,74 @@ odbc.connect(`${process.env.CONNECTION_STRING}`, (error, connection) => {
 
 ---
 
+### `.cancel(callback?)`
+
+Cancels the operations that are currently executing on this connection (`.query` and `.callProcedure`) by calling `SQLCancel` on their statement handles. A cancelled operation fails with an error whose `odbcErrors[0].state` is `HY008`. With the Altibase ODBC driver, the error code is `4202` and the message is `Query canceled by client.`.
+
+`.cancel` returns as soon as the cancel request has been sent; it does not wait for the cancelled operation to end. Once the operation has ended, the connection can be used again, and an open transaction stays open: only the cancelled statement fails, and the changes made earlier in the transaction are kept until you call `.commit` or `.rollback`.
+
+When nothing is executing, `.cancel` succeeds and does nothing. It does not affect operations started later.
+
+Only `.query` and `.callProcedure` are cancelled. A [Statement](#statement) created with `.createStatement` is cancelled with its own [`.cancel`](#cancelcallback-1), and the other Connection functions (`.tables`, `.columns`, `.commit` and so on) and [Cursor](#cursor) `.fetch` calls are not cancelled: a cursor stays open and the following `.fetch` calls return rows as usual.
+
+Behavior with the Altibase ODBC driver (checked with Altibase 7.3, 8.1 and 8.2):
+
+* To send the cancel request, the driver opens a separate network connection to the server. `.cancel` blocks the JavaScript thread while the request is sent, which normally takes a few milliseconds. If the server is slow to accept the connection, it blocks for longer.
+* The driver runs the operations of one connection one at a time. If you start several operations on the same connection without waiting for them, `.cancel` stops only the one that is executing on the server, and the waiting operations run after it. To cancel operations independently, run them on separate connections.
+* If `.cancel` is called just before an operation starts executing on the server, the request is ignored and the operation runs to completion.
+
+#### Parameters:
+* **callback?**: The function called when the cancel request has been sent. If no callback function is given, `.cancel` will return a native JavaScript `Promise`. Callback signature is:
+    * error: The error that occured while cancelling, or `null` if no error
+
+If the connection has already been closed, the callback is called with an error (`Connection has already been closed!`). Without a callback, this error is thrown instead of being returned in a rejected Promise.
+
+#### Examples:
+
+**Promises**
+
+```javascript
+const odbc = require('node-odbc-altibase');
+
+// can only use await keyword in an async function
+async function cancelExample() {
+    const connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
+    const queryPromise = connection.query('SELECT * FROM MY_LARGE_TABLE A, MY_LARGE_TABLE B');
+    setTimeout(() => connection.cancel().catch((error) => {}), 1000); // handle
+    try {
+        await queryPromise;
+    } catch (error) {
+        console.log(error.odbcErrors[0].state); // 'HY008' if the query was cancelled
+    }
+    await connection.close();
+}
+
+cancelExample();
+```
+
+**Callbacks**
+
+```javascript
+const odbc = require('node-odbc-altibase');
+
+odbc.connect(`${process.env.CONNECTION_STRING}`, (error, connection) => {
+    connection.query('SELECT * FROM MY_LARGE_TABLE A, MY_LARGE_TABLE B', (error1, result) => {
+        if (error1) {
+            console.log(error1.odbcErrors[0].state); // 'HY008' if the query was cancelled
+        }
+        connection.close((error2) => {});
+    });
+    setTimeout(() => {
+        connection.cancel((error3) => {
+            if (error3) { return; } // handle
+            // cancel request has been sent
+        });
+    }, 1000);
+});
+```
+
+---
+
 ### `.close(callback?)`
 
 Closes an open connection. Any transactions on the connection that have not been ended will be rolledback.
@@ -1029,6 +1099,72 @@ odbc.connect(`${process.env.CONNECTION_STRING}`, (error, connection) => {
                     console.log(result);
                 })
             });
+        });
+    });
+});
+```
+
+---
+
+### `.cancel(callback?)`
+
+Cancels the `.execute` that is currently executing on this Statement by calling `SQLCancel` on its handle. The cancelled `.execute` fails with an error whose `odbcErrors[0].state` is `HY008` (with the Altibase ODBC driver, code `4202`, `Query canceled by client.`). The Statement stays prepared and bound, so it can be executed again after the cancelled `.execute` has ended.
+
+When nothing is executing, `.cancel` succeeds and does nothing. The notes on the Altibase ODBC driver in [Connection `.cancel`](#cancelcallback) apply here as well: `.cancel` blocks the JavaScript thread while the driver sends the cancel request over a separate connection (normally a few milliseconds), and a cancel that arrives just before the execute starts on the server is ignored. Fetching from a [Cursor](#cursor) returned by `.execute` is not cancelled.
+
+#### Parameters:
+* **callback?**: The function called when the cancel request has been sent. If no callback function is given, `.cancel` will return a native JavaScript `Promise`. Callback signature is:
+    * error: The error that occured while cancelling, or `null` if no error
+
+If the Statement has already been closed, the callback is called with an error (`Statement has already been closed!`). Without a callback, this error is thrown instead of being returned in a rejected Promise.
+
+#### Examples:
+
+**Promises**
+
+```javascript
+const odbc = require('node-odbc-altibase');
+
+// can only use await keyword in an async function
+async function cancelExample() {
+    const connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
+    const statement = await connection.createStatement();
+    await statement.prepare('SELECT * FROM MY_LARGE_TABLE A, MY_LARGE_TABLE B');
+    const executePromise = statement.execute();
+    setTimeout(() => statement.cancel().catch((error) => {}), 1000); // handle
+    try {
+        await executePromise;
+    } catch (error) {
+        console.log(error.odbcErrors[0].state); // 'HY008' if the execute was cancelled
+    }
+    await statement.close();
+    await connection.close();
+}
+
+cancelExample();
+```
+
+**Callbacks**
+
+```javascript
+const odbc = require('node-odbc-altibase');
+
+odbc.connect(`${process.env.CONNECTION_STRING}`, (error, connection) => {
+    connection.createStatement((error1, statement) => {
+        if (error1) { return; } // handle
+        statement.prepare('SELECT * FROM MY_LARGE_TABLE A, MY_LARGE_TABLE B', (error2) => {
+            if (error2) { return; } // handle
+            statement.execute((error3, result) => {
+                if (error3) {
+                    console.log(error3.odbcErrors[0].state); // 'HY008' if the execute was cancelled
+                }
+            });
+            setTimeout(() => {
+                statement.cancel((error4) => {
+                    if (error4) { return; } // handle
+                    // cancel request has been sent
+                });
+            }, 1000);
         });
     });
 });

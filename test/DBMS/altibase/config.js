@@ -8,8 +8,19 @@ function dropTableIfExistsQuery(tableName) {
   return `BEGIN EXECUTE IMMEDIATE 'DROP TABLE ${tableName}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE <> ${TABLE_NOT_FOUND_SQLCODE} THEN RAISE; END IF; END;`;
 }
 
+// A query that keeps the server busy for a few seconds (about 4 seconds on a
+// fresh database), long enough to be cancelled while it is executing.
+const LONG_RUNNING_FROM = 'FROM SYSTEM_.SYS_COLUMNS_ A, SYSTEM_.SYS_COLUMNS_ B, SYSTEM_.SYS_COLUMNS_ C';
+const longRunningQuery = `SELECT COUNT(*) AS N ${LONG_RUNNING_FROM}`;
+
+function createLongRunningProcedureQuery(procedureName) {
+  return `CREATE OR REPLACE PROCEDURE ${procedureName}(N OUT INTEGER) AS BEGIN SELECT COUNT(*) INTO N ${LONG_RUNNING_FROM}; END;`;
+}
+
 module.exports = {
   dropTableIfExistsQuery,
+  longRunningQuery,
+  createLongRunningProcedureQuery,
   generateCreateOrReplaceQueries: function(tableName, fields) {
     const sqlQueries = [];
     sqlQueries.push(dropTableIfExistsQuery(tableName));

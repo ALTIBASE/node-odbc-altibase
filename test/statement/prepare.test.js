@@ -44,7 +44,8 @@ describe('.prepare(sql, [calback])...', () => {
       statement.prepare({}, DUMMY_CALLBACK);
     }, PREPARE_TYPE_ERROR);
 
-    // await connection.close();
+    await statement.close();
+    await connection.close();
   });
   describe('...with callbacks...', () => {
     it('...should prepare a valid SQL string', (done) => {
@@ -55,9 +56,12 @@ describe('.prepare(sql, [calback])...', () => {
           assert.notDeepEqual(statement, null);
           statement.prepare(`INSERT INTO ${process.env.DB_SCHEMA}.${process.env.DB_TABLE} VALUES(?, ?, ?)`, (error2) => {
             assert.deepEqual(error2, null);
-            connection.close((error3) => {
+            statement.close((error3) => {
               assert.deepEqual(error3, null);
-              done();
+              connection.close((error4) => {
+                assert.deepEqual(error4, null);
+                done();
+              });
             });
           });
         });
@@ -77,9 +81,12 @@ describe('.prepare(sql, [calback])...', () => {
           statement.prepare('INSERT INTO dummy123.asdtable456 VALUES(?zzszzzz ?, ?)', (error2) => {
             assert.notDeepEqual(error2, null);
             assert.deepEqual(error2 instanceof Error, true);
-            connection.close((error3) => {
+            statement.close((error3) => {
               assert.deepEqual(error3, null);
-              done();
+              connection.close((error4) => {
+                assert.deepEqual(error4, null);
+                done();
+              });
             });
           });
         });
@@ -99,9 +106,12 @@ describe('.prepare(sql, [calback])...', () => {
           statement.prepare('', (error2) => {
             assert.notDeepEqual(error2, null);
             assert.deepEqual(error2 instanceof Error, true);
-            connection.close((error3) => {
+            statement.close((error3) => {
               assert.deepEqual(error3, null);
-              done();
+              connection.close((error4) => {
+                assert.deepEqual(error4, null);
+                done();
+              });
             });
           });
         });
@@ -114,6 +124,7 @@ describe('.prepare(sql, [calback])...', () => {
         const connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
         const statement = await connection.createStatement();
         await statement.prepare(`INSERT INTO ${process.env.DB_SCHEMA}.${process.env.DB_TABLE} VALUES(?, ?, ?)`);
+        await statement.close();
         await connection.close();
       });
     });
@@ -126,8 +137,12 @@ describe('.prepare(sql, [calback])...', () => {
       assert.rejects(async () => {
         const connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
         const statement = await connection.createStatement();
-        await statement.prepare('INSERT INTO dummy123.table456 VALUES()');
-        await connection.close();
+        try {
+          await statement.prepare('INSERT INTO dummy123.table456 VALUES()');
+        } finally {
+          await statement.close();
+          await connection.close();
+        }
       });
     });
     it('...should return an error with a blank SQL string', async function() {
@@ -139,8 +154,12 @@ describe('.prepare(sql, [calback])...', () => {
       assert.rejects(async () => {
         const connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
         const statement = await connection.createStatement();
-        await statement.prepare('');
-        await connection.close();
+        try {
+          await statement.prepare('');
+        } finally {
+          await statement.close();
+          await connection.close();
+        }
       });
     });
   }); // '...with promises...'
