@@ -10,8 +10,8 @@ describe('.primaryKeys(catalog, schema, table, callback)...', () => {
       let query1;
       let query2;
       if (global.dbms === 'altibase') {  // Altibase does not support the CREATE OR REPLACE TABLE statement.
-        query1 = `DROP TABLE IF EXISTS ${process.env.DB_SCHEMA}.PKTEST`;
-        query2 = `DROP TABLE IF EXISTS ${process.env.DB_SCHEMA}.MULTIPKTEST`;
+        query1 = global.dbmsConfig.dropTableIfExistsQuery(`${process.env.DB_SCHEMA}.PKTEST`);
+        query2 = global.dbmsConfig.dropTableIfExistsQuery(`${process.env.DB_SCHEMA}.MULTIPKTEST`);
         await connection.query(query1);
         await connection.query(query2);
         query1 = `CREATE TABLE ${process.env.DB_SCHEMA}.PKTEST (ID INTEGER, NAME VARCHAR(24), AGE INTEGER, PRIMARY KEY(ID))`;

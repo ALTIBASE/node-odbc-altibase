@@ -1,9 +1,29 @@
 const odbc = require('../../../lib/odbc');
 
+// Altibase 7.3 does not support DROP TABLE IF EXISTS, so drop the table in an
+// anonymous block and ignore only the "Table or view was not found" error.
+const TABLE_NOT_FOUND_SQLCODE = 200753;
+
+function dropTableIfExistsQuery(tableName) {
+  return `BEGIN EXECUTE IMMEDIATE 'DROP TABLE ${tableName}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE <> ${TABLE_NOT_FOUND_SQLCODE} THEN RAISE; END IF; END;`;
+}
+
+// A query that keeps the server busy for a few seconds (about 4 seconds on a
+// fresh database), long enough to be cancelled while it is executing.
+const LONG_RUNNING_FROM = 'FROM SYSTEM_.SYS_COLUMNS_ A, SYSTEM_.SYS_COLUMNS_ B, SYSTEM_.SYS_COLUMNS_ C';
+const longRunningQuery = `SELECT COUNT(*) AS N ${LONG_RUNNING_FROM}`;
+
+function createLongRunningProcedureQuery(procedureName) {
+  return `CREATE OR REPLACE PROCEDURE ${procedureName}(N OUT INTEGER) AS BEGIN SELECT COUNT(*) INTO N ${LONG_RUNNING_FROM}; END;`;
+}
+
 module.exports = {
+  dropTableIfExistsQuery,
+  longRunningQuery,
+  createLongRunningProcedureQuery,
   generateCreateOrReplaceQueries: function(tableName, fields) {
     const sqlQueries = [];
-    sqlQueries.push(`DROP TABLE IF EXISTS ${tableName}`);
+    sqlQueries.push(dropTableIfExistsQuery(tableName));
     sqlQueries.push(`CREATE TABLE ${tableName} ${fields}`);
     sqlQueries.push(`CREATE OR REPLACE PROCEDURE TESTPROC(a1 OUT INTEGER) AS BEGIN  SELECT 1 INTO a1 FROM dual; END;`); // DB_STOREDPROCEDURE
     sqlQueries.push(`CREATE OR REPLACE PROCEDURE TESTPROC2(a1 OUT INTEGER, a2 OUT INTEGER) AS BEGIN  SELECT 1 INTO a1 FROM dual;  SELECT 2 INTO a2 FROM dual; END;`); // DB_STOREDPROCEDURE2

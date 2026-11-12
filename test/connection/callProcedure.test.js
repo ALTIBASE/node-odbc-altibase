@@ -129,4 +129,20 @@ describe('.callProcedure(procedureName, parameters, [callback])...', () => {
       });
     });
   });
+  describe('...with promises...', () => {
+    const procedureName = 'TESTPROC_NO_PARAMS';
+    let connection;
+    before(async () => {
+      connection = await odbc.connect(`${process.env.CONNECTION_STRING}`);
+      await connection.query(`CREATE OR REPLACE PROCEDURE ${process.env.DB_SCHEMA}.${procedureName} AS BEGIN NULL; END`);
+    });
+    after(async () => {
+      await connection.query(`DROP PROCEDURE ${process.env.DB_SCHEMA}.${procedureName}`);
+      await connection.close();
+    });
+    it('...should call a procedure that has no parameters.', async () => {
+      const result = await connection.callProcedure(null, `${process.env.DB_SCHEMA}`, procedureName, []);
+      assert.deepEqual(result.parameters, []);
+    });
+  });
 });
